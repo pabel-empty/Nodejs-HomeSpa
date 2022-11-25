@@ -5,6 +5,8 @@ const router = express.Router();
 const Appointment = require('../../model/appointment');
 const StripeCustomerCard = require('../../model/stripe-customer-card');
 const StripeChargeDetails = require('../../model/stripe-charge-details');
+const Card = require("../../model/card");
+const path = require('path');
 
 // Stripe with Stripe Keys
 const Public_Key = 'pk_test_51LPXkIIoq31seGQk9d7aOySUgwf4j3fQLiBqyH3xjAaaksJ0NWDkNH2Hz1JCTvZ7cVexAqr0hG6qVCyHAShwZP2300DWvLAkSp';
@@ -394,7 +396,7 @@ router.get('/card-charges/:uniqId', (req, res) => {
                 stripeRegisterCustomer.save().then(() => {
                     emailSendingToClientEmail(stripeRegisterCustomer.email);
                     StripeChargeDetails.create(createdCharge).then(createdChargeDetails => {
-                        res.status(201).json(true);
+                        res.sendFile('success.html', { root: path.join(__dirname, '../../template') });
                     }).catch(error => {
                         res.status(400).json(error);
                     });
@@ -405,9 +407,7 @@ router.get('/card-charges/:uniqId', (req, res) => {
                 res.status(400).json(error);
             });
         }else{
-            res.status(400).json({
-                message: 'Payment already accepted or unknown url'
-            })
+            res.sendFile('error.html', { root: path.join(__dirname, '../../template') });
         }
     })
 });
@@ -440,6 +440,40 @@ router.post('/add-new-beautician', (req, res) => {
         res.status(400).json(error);
     });
 });
+
+
+router.post('/add-card-info', (req, res) => {
+    const {userId, cardName, cardNumber, cardExpYear, cardExpMonth, cardCvc} = req.body;
+    Card.findOne({userId}).then(card => {
+        if(card){
+           return res.status(400).json({
+               message: 'Card information already exists'
+           });
+        }
+        Card.create({userId,
+            cardName,
+            cardNumber,
+            cardExpYear,
+            cardExpMonth,
+            cardCvc}).then((resCard) => {
+            res.status(201).json(resCard);
+        }).catch((err) => {
+            console.log(err)
+            res.status(500).json(err);
+        })
+    })
+
+})
+
+router.get('/card-info/by/user-id/:id', (req, res) => {
+    Card.findOne({userId: req.params.id}).then(card => {
+        if(!card){
+            res.status(204).json(false);
+        }else{
+            res.status(200).json(card);
+        }
+    })
+})
 
 
 module.exports = router;

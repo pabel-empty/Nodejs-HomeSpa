@@ -43,13 +43,8 @@ const upload = multer({
 
 
 // Get Current loggedIn user information from jsonwebtoken
-router.get('/current-login-user', authenticated(), (req, res) => {
-    res.status(200).json({
-        id: req.user.id,
-        firstName: req.user.firstName,
-        lastName: req.user.lastName,
-        email: req.user.email,
-    })
+router.get('/logged-in-user-information', authenticated(), (req, res) => {
+    res.status(200).json(req.user);
 });
 
 
@@ -276,8 +271,22 @@ router.post('/login', (req, res) => {
                     const payload = {
                         id: user._id,
                         name: user.firstName+' '+user.lastName,
+                        username: user.username,
+                        image: user.image,
                         email: user.email,
-                        userType: user.userType
+                        phoneNumber: user.phoneNumber,
+                        userType: user.userType,
+                        gender: user.gender,
+                        religion: user.religion,
+                        exp_level: user.exp_level,
+                        address1: user.address1,
+                        address2: user.address2,
+                        country: user.country,
+                        country_state: user.country_state,
+                        country_code: user.country_code,
+                        availability: user.availability,
+                        price: user.price,
+                        state: user.state,
                     }
                     // 30 days time in seconds
                     const seconds = 60 * 60 * 24 * 30;
@@ -1172,6 +1181,38 @@ router.get('/find/by/id/:id', (req, res) => {
        }
        res.status(200).json(user);
    })
+});
+
+
+// User Register or Not
+router.get('/is-user-registered', (req, res) => {
+    User.findOne({_id: req.params.id}, (err, user) => {
+        if(err){
+            return res.status(500).json(err);
+        }
+        if(user){
+            return res.status(400).json(true);
+        }else{
+            return res.status(400).json(false)
+        }
+    })
+});
+
+
+// Update user date time schedule
+router.get('/update/date-time-schedule', (req, res) => {
+    const userId = req.body.userId;
+    User.findOne({_id: userId}, (err, user) => {
+        if(err){
+            return res.status(500).json(err);
+        }
+
+        if(user){
+            return res.status(400).json(true);
+        }else{
+            return res.status(400).json(false)
+        }
+    })
 });
 
 
